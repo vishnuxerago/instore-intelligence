@@ -31,7 +31,10 @@
       <button class="btn btn-primary" onclick="openCameraModal()">
         <i class="fa-solid fa-plus"></i> Add Camera Host
       </button>
-      <a href="/api/export-csv" class="btn btn-secondary" target="_blank">
+      <button class="btn btn-secondary" onclick="openServerModal()" title="Configure Python Backend Server URL">
+        <i class="fa-solid fa-server"></i> Server IP
+      </button>
+      <a href="#" id="exportCsvBtn" onclick="handleExportCsv(event)" class="btn btn-secondary" target="_blank">
         <i class="fa-solid fa-file-csv"></i> Export CSV Log
       </a>
     </div>
@@ -164,6 +167,29 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="closeCameraModal()">Cancel</button>
           <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Camera</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Server Backend IP Config Modal -->
+  <div class="modal-backdrop" id="serverModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-server"></i> Backend Server Configuration</h3>
+        <button class="modal-close" onclick="closeServerModal()">&times;</button>
+      </div>
+      
+      <form id="serverForm" onsubmit="handleSaveServer(event)">
+        <div class="form-group">
+          <label for="serverUrl">Python Backend Server URL</label>
+          <input type="text" id="serverUrl" class="form-control" placeholder="e.g. http://10.22.18.166:8000" required>
+          <small class="form-hint">Enter the IP/URL of your PC running python server.py (e.g. http://10.22.18.166:8000)</small>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeServerModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Server URL</button>
         </div>
       </form>
     </div>

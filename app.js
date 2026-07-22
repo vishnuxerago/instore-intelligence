@@ -2,10 +2,21 @@
    Multi-Camera ArUco Vision System Logic
    ========================================== */
 
-// Automatically detect if running under VS Code Live Server (port 5500/5501) and redirect API calls to FastAPI (port 8000)
-const API_BASE = (window.location.port === "5500" || window.location.port === "5501" || window.location.protocol === "file:") 
-  ? "http://localhost:8000" 
-  : "";
+function getApiBase() {
+  const saved = localStorage.getItem("backend_url");
+  if (saved && saved.trim()) {
+    return saved.trim().replace(/\/$/, "");
+  }
+  if (window.location.port === "5500" || window.location.port === "5501" || window.location.protocol === "file:") {
+    return "http://localhost:8000";
+  }
+  if (window.location.hostname.includes("vercel.app") || window.location.hostname.includes("github.io")) {
+    return "http://10.22.18.166:8000"; // Fallback to current PC IP
+  }
+  return "";
+}
+
+let API_BASE = getApiBase();
 
 let camerasList = [];
 let allLogs = [];
@@ -339,4 +350,34 @@ function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, m => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
   }[m]));
+}
+
+// ─────────────────────────────────────────
+// SERVER IP CONFIGURATION MODAL
+// ─────────────────────────────────────────
+function openServerModal() {
+  document.getElementById("serverUrl").value = API_BASE || "http://10.22.18.166:8000";
+  document.getElementById("serverModal").classList.add("active");
+}
+
+function closeServerModal() {
+  document.getElementById("serverModal").classList.remove("active");
+}
+
+function handleSaveServer(e) {
+  e.preventDefault();
+  let url = document.getElementById("serverUrl").value.trim().replace(/\/$/, "");
+  if (url && !url.startsWith("http://") && !url.startsWith("https://")) {
+    url = "http://" + url;
+  }
+  localStorage.setItem("backend_url", url);
+  API_BASE = url;
+  closeServerModal();
+  loadCameras();
+  loadLogs();
+}
+
+function handleExportCsv(e) {
+  e.preventDefault();
+  window.open(`${API_BASE}/api/export-csv`, "_blank");
 }
