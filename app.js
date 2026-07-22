@@ -329,7 +329,11 @@ async function handleSaveCamera(e) {
     }
   } catch (err) {
     console.error("Save error:", err);
-    alert("Network error saving camera.");
+    if (window.location.protocol === "https:" && API_BASE.startsWith("http://")) {
+      alert("Browser Security Notice (Mixed Content Block):\n\nYour phone browser blocked 'http://' connection from 'https://' Vercel.\n\nSolution 1 (Recommended):\nOpen http://10.22.18.166:8000 directly in your phone browser.\n\nSolution 2:\nUse an HTTPS server URL (e.g. ngrok: npx ngrok http 8000).");
+    } else {
+      alert("Network error connecting to backend server (" + API_BASE + "). Please verify python server.py is running.");
+    }
   }
 }
 
