@@ -231,7 +231,7 @@ class CameraManager:
     def load_cameras(self):
         if not os.path.exists(CAMERAS_FILE):
             default_config = [
-                {"id": "cam_1", "name": "Main Gate", "ip": "10.237.17.80", "enabled": True}
+                {"id": "cam_1", "name": "Main Gate", "ip": "10.22.18.80", "enabled": True}
             ]
             with open(CAMERAS_FILE, "w") as f:
                 json.dump(default_config, f, indent=2)
