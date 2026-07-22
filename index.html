@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instore Intelligence - Multi-Camera ArUco Tracking System</title>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="brand">
+      <i class="fa-solid fa-camera-rotate brand-icon"></i>
+      <div>
+        <h1>Instore Intelligence</h1>
+        <p class="subtitle">Multi-Camera Tracking & Real-Time Logging Platform</p>
+      </div>
+    </div>
+    
+    <div class="header-actions">
+      <div class="status-indicator online" id="systemStatus">
+        <span class="status-dot"></span>
+        <span id="systemStatusText">System Active</span>
+      </div>
+      <button class="btn btn-primary" onclick="openCameraModal()">
+        <i class="fa-solid fa-plus"></i> Add Camera Host
+      </button>
+      <a href="/api/export-csv" class="btn btn-secondary" target="_blank">
+        <i class="fa-solid fa-file-csv"></i> Export CSV Log
+      </a>
+    </div>
+  </header>
+
+  <main class="dashboard-container">
+
+    <!-- Metrics Cards Grid -->
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon blue"><i class="fa-solid fa-video"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Configured Cameras</span>
+          <h2 id="metricTotalCams">0</h2>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon green"><i class="fa-solid fa-signal"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Online Streams</span>
+          <h2 id="metricOnlineCams">0</h2>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon purple"><i class="fa-solid fa-qrcode"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Currently Active Tags</span>
+          <h2 id="metricActiveTags">0</h2>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon orange"><i class="fa-solid fa-list-check"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Total Log Events</span>
+          <h2 id="metricTotalLogs">0</h2>
+        </div>
+      </div>
+    </section>
+
+    <!-- Multi-Camera Video Feeds Grid -->
+    <section class="section-container">
+      <div class="section-header">
+        <div>
+          <h2><i class="fa-solid fa-grid-2"></i> Camera Feeds</h2>
+          <p>Real-time video streams with automated marker detection</p>
+        </div>
+        <button class="btn btn-sm btn-outline" onclick="loadCameras()">
+          <i class="fa-solid fa-rotate-right"></i> Refresh Streams
+        </button>
+      </div>
+
+      <div class="camera-grid" id="cameraGrid">
+        <!-- Dynamic Camera Stream Cards rendered by app.js -->
+      </div>
+    </section>
+
+    <!-- Real-Time Detection Logs Table -->
+    <section class="section-container">
+      <div class="section-header">
+        <div>
+          <h2><i class="fa-solid fa-clock-rotate-left"></i> Tag Entry/Exit Logs</h2>
+          <p>Automated timestamp logs recorded when ArUco/AprilTag markers enter or leave camera view</p>
+        </div>
+        <div class="log-controls" style="display: flex; gap: 0.75rem; align-items: center;">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="logSearch" placeholder="Filter by Tag ID or Camera..." oninput="filterLogs()">
+          </div>
+          <button class="btn btn-sm btn-danger" onclick="clearLogs()" title="Clear all recorded detection logs">
+            <i class="fa-solid fa-trash-can"></i> Clear Logs
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Camera Name</th>
+              <th>Camera IP Host</th>
+              <th>Marker Tag ID</th>
+              <th>IN Timestamp</th>
+              <th>OUT Timestamp</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="logsTableBody">
+            <!-- Dynamic Log Rows rendered by app.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Add / Edit Camera Host Modal Dialog -->
+  <div class="modal-backdrop" id="cameraModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle"><i class="fa-solid fa-video-plus"></i> Add Camera Host</h3>
+        <button class="modal-close" onclick="closeCameraModal()">&times;</button>
+      </div>
+      
+      <form id="cameraForm" onsubmit="handleSaveCamera(event)">
+        <input type="hidden" id="camId">
+
+        <div class="form-group">
+          <label for="camName">Camera Name / Location</label>
+          <input type="text" id="camName" class="form-control" placeholder="e.g. Entrance Gate / Aisle 1" required>
+        </div>
+
+        <div class="form-group">
+          <label for="camIp">ESP32 IP Host Address</label>
+          <input type="text" id="camIp" class="form-control" placeholder="e.g. 10.237.17.80" required>
+          <small class="form-hint">Enter the IP printed in your ESP32 Serial Monitor (without http://)</small>
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label class="switch">
+            <input type="checkbox" id="camEnabled" checked>
+            <span class="slider round"></span>
+          </label>
+          <span>Enable Stream Feed</span>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeCameraModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Camera</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
